@@ -1,0 +1,6 @@
+# Language statistics (GitHub Linguist).
+# This is a Python (Flask) server. The dashboard page and its assets are
+# left out of the language bar so the repository is labelled by its server
+# code instead of by one HTML template.
+templates/** linguist-detectable=false
+static/** linguist-detectable=false
