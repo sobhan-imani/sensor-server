@@ -1,0 +1,7 @@
+# Local data: the server creates it on first run.
+database.db
+
+__pycache__/
+*.py[cod]
+.venv/
+.env

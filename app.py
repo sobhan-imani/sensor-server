@@ -1,3 +1,4 @@
+import hmac
 import os
 import sqlite3
 import datetime
@@ -7,7 +8,11 @@ app = Flask(__name__, static_folder="static")
 
 # ---------------- CONFIG ----------------
 DB_PATH = os.environ.get("DB_PATH", "database.db")
-API_KEY = "shayan123"  # خودت مقدار دلخواهت رو اینجا قرار بده
+# کلید از متغیر محیطی API_KEY خوانده می‌شود و هیچ‌وقت نباید داخل کد باشد.
+# اگر ست نشده باشد، /data هیچ داده‌ای قبول نمی‌کند (به‌جای اینکه برای همه باز باشد).
+API_KEY = os.environ.get("API_KEY", "")
+if not API_KEY:
+    app.logger.warning("API_KEY is not set: /data will reject every request until it is.")
 
 # ---------------- DATABASE ----------------
 def get_conn():
@@ -41,8 +46,12 @@ def health():
 @app.route("/data", methods=["GET", "POST"])
 def receive_data():
     # API Key check
-    key = request.args.get("key") or request.headers.get("X-API-Key")
-    if key != API_KEY:
+    if not API_KEY:
+        return "server not configured: set the API_KEY environment variable", 503
+    key = request.args.get("key") or request.headers.get("X-API-Key") or ""
+    # compare_digest takes the same time whatever the input, so the key
+    # cannot be guessed character by character from response times.
+    if not hmac.compare_digest(key.encode(), API_KEY.encode()):
         return "unauthorized", 401
 
     # داده رو از JSON یا query string بگیر
